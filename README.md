@@ -429,20 +429,28 @@ npm run dev
   <tr>
     <td align="center">
       <b>Jatin Mahire</b><br>
-      <sub>Full Stack Developer</sub><br>
-      <a href="https://github.com/jatinmahire">GitHub</a>
+      >
+      <a</a>
     </td>
     <td align="center">
-      <b>Team Member 2</b><br>
-      <sub>Role</sub>
+      <b>Shanteshwar Malang</b><br>
+      <sub></sub>
     </td>
     <td align="center">
-      <b>Team Member 3</b><br>
-      <sub>Role</sub>
+      <b>Raghav Mandane</b><br>
+      <sub></sub>
     </td>
     <td align="center">
-      <b>Team Member 4</b><br>
-      <sub>Role</sub>
+      <b>Dhiraj Malkunaik</b><br>
+      <sub></sub>
+    </td>
+         <td align="center">
+      <b>Satyajeet Mali</b><br>
+      <sub></sub>
+    </td>
+         <td align="center">
+      <b>OM Mandawade</b><br>
+      <sub></sub>
     </td>
   </tr>
 </table>

@@ -298,3 +298,144 @@
     margin-top: 12px;
     opacity: 0.6;
 }
+
+/* ===== SIGNUP EXTENSIONS ===== */
+.signup-container {
+    max-width: 560px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.input-wrapper select {
+    flex: 1;
+    padding: 14px 0;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.input-wrapper select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Auth Error */
+.auth-error {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(255, 59, 79, 0.08);
+    border: 1px solid rgba(255, 59, 79, 0.2);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    color: var(--alert-red);
+    animation: shakeError 0.4s ease;
+}
+
+@keyframes shakeError {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-6px);
+    }
+
+    75% {
+        transform: translateX(6px);
+    }
+}
+
+/* Auth Switch */
+.auth-switch {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.auth-link {
+    color: var(--accent-teal) !important;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.auth-link:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+/* Signup Success */
+.signup-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 32px 16px;
+    text-align: center;
+    animation: fadeInUp 0.5s ease;
+}
+
+.success-icon {
+    font-size: 3rem;
+}
+
+.signup-success h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    color: var(--alert-green);
+    letter-spacing: 0.5px;
+}
+
+.signup-success p {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.success-bar {
+    width: 200px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.success-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-teal), var(--alert-green));
+    border-radius: 2px;
+    animation: successProgress 1.8s ease forwards;
+}
+
+@keyframes successProgress {
+    from {
+        width: 0%;
+    }
+
+    to {
+        width: 100%;
+    }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .signup-container {
+        max-width: 100%;
+        padding: 24px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}

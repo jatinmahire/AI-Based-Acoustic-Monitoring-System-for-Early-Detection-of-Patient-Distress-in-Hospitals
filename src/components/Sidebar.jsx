@@ -33,6 +33,10 @@ function Sidebar() {
             <span className="nav-icon">📈</span>
             <span>Analytics</span>
           </NavLink>
+          <NavLink to="/history" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <span className="nav-icon">📋</span>
+            <span>Alert History</span>
+          </NavLink>
         </div>
 
         <div className="nav-section">
@@ -40,6 +44,10 @@ function Sidebar() {
           <NavLink to="/comfort" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             <span className="nav-icon">💚</span>
             <span>Comfort AI</span>
+          </NavLink>
+          <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <span className="nav-icon">⚙️</span>
+            <span>Settings</span>
           </NavLink>
         </div>
       </nav>

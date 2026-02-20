@@ -1,25 +1,50 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './Login.css';
 
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleLogin = (e) => {
         e.preventDefault();
+        setError('');
         setIsLoading(true);
-        // Fake login — just navigate after brief delay
+
         setTimeout(() => {
-            navigate('/dashboard');
+            // Check credentials against registered users
+            const users = JSON.parse(localStorage.getItem('nurseguard_users') || '[]');
+            const match = users.find(
+                u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+            );
+
+            if (match) {
+                // Store active session
+                localStorage.setItem('nurseguard_session', JSON.stringify({
+                    id: match.id,
+                    name: match.name,
+                    email: match.email,
+                    role: match.role,
+                    department: match.department,
+                    loggedInAt: new Date().toISOString(),
+                }));
+                navigate('/dashboard');
+            } else {
+                setIsLoading(false);
+                if (users.length === 0) {
+                    setError('No accounts registered yet. Please sign up first.');
+                } else {
+                    setError('Invalid email or password. Please try again.');
+                }
+            }
         }, 1200);
     };
 
     return (
         <div className="login-page">
-            {/* Animated background particles */}
             <div className="login-bg">
                 <div className="bg-circle c1"></div>
                 <div className="bg-circle c2"></div>
@@ -38,6 +63,13 @@ function Login() {
                 </div>
 
                 <form className="login-form" onSubmit={handleLogin}>
+                    {error && (
+                        <div className="auth-error">
+                            <span>⚠️</span>
+                            <span>{error}</span>
+                        </div>
+                    )}
+
                     <div className="form-group">
                         <label htmlFor="email">Staff Email</label>
                         <div className="input-wrapper">
@@ -47,7 +79,7 @@ function Login() {
                                 type="text"
                                 placeholder="Enter your staff email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => { setEmail(e.target.value); setError(''); }}
                                 required
                             />
                         </div>
@@ -62,7 +94,7 @@ function Login() {
                                 type="password"
                                 placeholder="Enter your password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e) => { setPassword(e.target.value); setError(''); }}
                                 required
                             />
                         </div>
@@ -81,6 +113,10 @@ function Login() {
                             </>
                         )}
                     </button>
+
+                    <div className="auth-switch">
+                        Don't have an account? <Link to="/signup" className="auth-link">Sign Up</Link>
+                    </div>
                 </form>
 
                 <div className="login-footer">

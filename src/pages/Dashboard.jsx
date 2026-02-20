@@ -1,58 +1,66 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Layout from '../components/Layout';
+import { generateAlertBatch, createAIEngine, getPatients, generateRiskScores, updateRiskFromAlert } from '../engine/aiEngine';
 import './Dashboard.css';
 
-// Fake alert data pool
-const alertPool = [
-    { room: 203, patient: 'Mike Johnson', type: 'Respiratory distress detected', confidence: 94, severity: 'high', icon: '🚨' },
-    { room: 105, patient: 'Helen Park', type: 'Patient stress levels elevated', confidence: 81, severity: 'medium', icon: '⚠️' },
-    { room: 312, patient: 'James Carter', type: 'Abnormal heart rate pattern', confidence: 88, severity: 'high', icon: '🚨' },
-    { room: 207, patient: 'David Lee', type: 'Fall risk detected via motion sensor', confidence: 76, severity: 'medium', icon: '⚠️' },
-    { room: 118, patient: 'Anna White', type: 'Sleep apnea episode detected', confidence: 91, severity: 'high', icon: '🚨' },
-    { room: 204, patient: 'Emily Davis', type: 'Panic keywords detected in audio', confidence: 85, severity: 'medium', icon: '⚠️' },
-    { room: 301, patient: 'Robert Kim', type: 'Sudden movement anomaly', confidence: 72, severity: 'low', icon: '🔔' },
-    { room: 215, patient: 'Grace Miller', type: 'Cough frequency above threshold', confidence: 79, severity: 'medium', icon: '⚠️' },
-    { room: 109, patient: 'Thomas Brown', type: 'Blood pressure spike detected', confidence: 93, severity: 'high', icon: '🚨' },
-    { room: 220, patient: 'Lisa Chen', type: 'Restless movement pattern', confidence: 68, severity: 'low', icon: '🔔' },
-    { room: 310, patient: 'Kevin Patel', type: 'Help keyword detected in audio', confidence: 90, severity: 'high', icon: '🚨' },
-    { room: 112, patient: 'Sarah Lopez', type: 'Sudden temperature increase', confidence: 83, severity: 'medium', icon: '⚠️' },
-];
-
-// Detection events for the AI monitoring simulation
-const detectionEvents = [
-    { type: 'cough', message: 'Persistent cough detected', room: 204, severity: 'medium' },
-    { type: 'panic', message: 'Panic vocalization detected', room: 312, severity: 'high' },
-    { type: 'help', message: '"Help" keyword detected in audio', room: 310, severity: 'high' },
-    { type: 'fall', message: 'Fall detected via motion sensor', room: 207, severity: 'high' },
-    { type: 'breathing', message: 'Irregular breathing pattern', room: 118, severity: 'medium' },
-    { type: 'movement', message: 'Abnormal movement detected', room: 301, severity: 'medium' },
-    { type: 'heartrate', message: 'Heart rate anomaly detected', room: 109, severity: 'high' },
-    { type: 'stress', message: 'Elevated stress indicators', room: 105, severity: 'medium' },
-    { type: 'oxygen', message: 'SpO2 level dropping', room: 203, severity: 'high' },
-    { type: 'cry', message: 'Distress vocalization detected', room: 215, severity: 'medium' },
-];
-
-function getTimeAgo(index) {
-    const times = ['Just now', '2 min ago', '5 min ago', '8 min ago', '12 min ago', '18 min ago', '25 min ago', '32 min ago'];
-    return times[index] || `${30 + index * 5} min ago`;
+// Time ago display
+function timeAgo(ts) {
+    const diff = Math.floor((Date.now() - ts) / 1000);
+    if (diff < 10) return 'Just now';
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+    return `${Math.floor(diff / 3600)}h ago`;
 }
 
+// CRITICAL escalation config
+const CRITICAL_WINDOW_MS = 30000;
+const CRITICAL_THRESHOLD = 3;
+
+// Global in-memory alert history
+const alertHistoryStore = [];
+export function getAlertHistory() { return alertHistoryStore; }
+
 function Dashboard() {
-    const [alerts, setAlerts] = useState(() => alertPool.slice(0, 4));
-    const [stats, setStats] = useState({
-        total: 24,
-        active: 3,
-        emergency: 1,
-        normal: 20,
-    });
+    const [alerts, setAlerts] = useState(() => generateAlertBatch(4));
+    const [stats, setStats] = useState({ total: 24, active: 4, emergency: 1, normal: 20 });
     const [currentTime, setCurrentTime] = useState(new Date());
     const [isMonitoring, setIsMonitoring] = useState(false);
     const [popups, setPopups] = useState([]);
     const [scanProgress, setScanProgress] = useState(0);
     const [detectionCount, setDetectionCount] = useState(0);
-    const monitoringRef = useRef(null);
+    const [engineStats, setEngineStats] = useState(null);
+
+    // Loading animation state
+    const [isBooting, setIsBooting] = useState(false);
+
+    // CRITICAL failure detection
+    const [criticalMode, setCriticalMode] = useState(false);
+    const recentAlertTimestamps = useRef([]);
+
+    // Predictive risk scores
+    const [riskScores, setRiskScores] = useState(() => generateRiskScores());
+    const allPatients = useRef(getPatients());
+
+    // System status indicators (simulated)
+    const systemIndicators = [
+        { label: 'Edge AI Device', status: isMonitoring ? 'Connected' : 'Standby', icon: '🧠', active: isMonitoring },
+        { label: 'Audio Monitoring', status: isMonitoring ? 'Active' : 'Idle', icon: '🎤', active: isMonitoring },
+        { label: 'Data Encryption', status: 'Enabled', icon: '🔐', active: true },
+        { label: 'Server Status', status: 'Running', icon: '🖥️', active: true },
+    ];
+
+    const engineRef = useRef(null);
     const scanRef = useRef(null);
     const popupIdRef = useRef(0);
+
+    // Seed initial batch into history
+    useEffect(() => {
+        alerts.forEach(a => {
+            if (!alertHistoryStore.find(h => h.id === a.id)) {
+                alertHistoryStore.push({ ...a });
+            }
+        });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Live clock
     useEffect(() => {
@@ -60,129 +68,186 @@ function Dashboard() {
         return () => clearInterval(timer);
     }, []);
 
-    // Simulate new alerts arriving (baseline)
-    const addRandomAlert = useCallback(() => {
-        const pool = alertPool.filter(a => !alerts.find(existing => existing.room === a.room && existing.type === a.type));
-        if (pool.length === 0) return;
-        const newAlert = { ...pool[Math.floor(Math.random() * pool.length)], timestamp: Date.now() };
-        setAlerts(prev => [newAlert, ...prev].slice(0, 8));
-        setStats(prev => ({
-            ...prev,
-            active: Math.min(prev.active + 1, 8),
-            emergency: newAlert.severity === 'high' ? Math.min(prev.emergency + 1, 5) : prev.emergency,
-        }));
+    // Recompute stats
+    useEffect(() => {
+        const activeAlerts = alerts.filter(a => !a.acknowledged);
+        setStats({
+            total: 24,
+            active: activeAlerts.length,
+            emergency: activeAlerts.filter(a => a.severityLevel === 'high').length,
+            normal: Math.max(0, 24 - activeAlerts.length),
+        });
     }, [alerts]);
 
+    // CRITICAL auto-clear
     useEffect(() => {
-        const interval = setInterval(addRandomAlert, 15000);
-        return () => clearInterval(interval);
-    }, [addRandomAlert]);
+        if (!criticalMode) return;
+        const timeout = setTimeout(() => setCriticalMode(false), 15000);
+        return () => clearTimeout(timeout);
+    }, [criticalMode]);
 
-    // Remove popup after timeout
+    // Remove popup
     const removePopup = useCallback((id) => {
         setPopups(prev => prev.map(p => p.id === id ? { ...p, exiting: true } : p));
-        setTimeout(() => {
-            setPopups(prev => prev.filter(p => p.id !== id));
-        }, 400);
+        setTimeout(() => setPopups(prev => prev.filter(p => p.id !== id)), 400);
     }, []);
 
-    // Add a popup notification
-    const addPopup = useCallback((detection) => {
+    // Add popup
+    const addPopup = useCallback((alert) => {
         const id = ++popupIdRef.current;
-        const popup = { id, ...detection, exiting: false };
-        setPopups(prev => [...prev, popup].slice(-4)); // max 4 popups
-        // Auto remove after 6 seconds
+        const popup = {
+            id, alertId: alert.id, room: alert.roomNumber,
+            message: alert.condition, severity: alert.severityLevel,
+            confidence: alert.confidenceScore, category: alert.category,
+            triggerDetail: alert.triggerDetail, timestamp: alert.timestamp,
+            icon: alert.icon, exiting: false,
+        };
+        setPopups(prev => [...prev, popup].slice(-4));
         setTimeout(() => removePopup(id), 6000);
     }, [removePopup]);
 
-    // Start/Stop AI Monitoring
+    // CRITICAL check
+    const checkCriticalEscalation = useCallback(() => {
+        const now = Date.now();
+        recentAlertTimestamps.current = recentAlertTimestamps.current.filter(ts => (now - ts) < CRITICAL_WINDOW_MS);
+        recentAlertTimestamps.current.push(now);
+        if (recentAlertTimestamps.current.length >= CRITICAL_THRESHOLD) {
+            setCriticalMode(true);
+        }
+    }, []);
+
+    // Handle new alert
+    const handleNewAlert = useCallback((alert) => {
+        setAlerts(prev => [alert, ...prev].slice(0, 15));
+        addPopup(alert);
+        setDetectionCount(prev => prev + 1);
+        checkCriticalEscalation();
+        setRiskScores(prev => updateRiskFromAlert(prev, alert));
+        // Save to history
+        alertHistoryStore.push({ ...alert });
+    }, [addPopup, checkCriticalEscalation]);
+
+    const acknowledgeAlert = useCallback((alertId) => {
+        setAlerts(prev => prev.map(a => a.id === alertId ? { ...a, acknowledged: true } : a));
+    }, []);
+
+    const dismissAlert = useCallback((alertId) => {
+        setAlerts(prev => prev.filter(a => a.id !== alertId));
+    }, []);
+
+    const clearAllAlerts = useCallback(() => {
+        setAlerts([]);
+        setCriticalMode(false);
+        recentAlertTimestamps.current = [];
+    }, []);
+
+    const acknowledgeAll = useCallback(() => {
+        setAlerts(prev => prev.map(a => ({ ...a, acknowledged: true })));
+    }, []);
+
+    // Toggle monitoring with loading animation
     const toggleMonitoring = useCallback(() => {
         if (isMonitoring) {
-            // Stop
-            clearInterval(monitoringRef.current);
-            clearInterval(scanRef.current);
-            monitoringRef.current = null;
+            if (engineRef.current) engineRef.current.stop();
+            if (scanRef.current) clearInterval(scanRef.current);
             scanRef.current = null;
             setIsMonitoring(false);
             setScanProgress(0);
+            setEngineStats(null);
         } else {
-            // Start
-            setIsMonitoring(true);
-            setDetectionCount(0);
-            setScanProgress(0);
-
-            // Scan progress animation
-            scanRef.current = setInterval(() => {
-                setScanProgress(prev => {
-                    if (prev >= 100) return 0;
-                    return prev + 2;
-                });
-            }, 200);
-
-            // Generate fake detection every 10 seconds
-            monitoringRef.current = setInterval(() => {
-                const event = detectionEvents[Math.floor(Math.random() * detectionEvents.length)];
-                addPopup(event);
-                setDetectionCount(prev => prev + 1);
-
-                // Also add to alert panel
-                const newAlert = {
-                    room: event.room,
-                    patient: alertPool.find(a => a.room === event.room)?.patient || 'Unknown',
-                    type: event.message,
-                    confidence: 70 + Math.floor(Math.random() * 25),
-                    severity: event.severity,
-                    icon: event.severity === 'high' ? '🚨' : '⚠️',
-                    timestamp: Date.now(),
-                };
-                setAlerts(prev => [newAlert, ...prev].slice(0, 10));
-                setStats(prev => ({
-                    ...prev,
-                    active: Math.min(prev.active + 1, 12),
-                    emergency: event.severity === 'high' ? Math.min(prev.emergency + 1, 6) : prev.emergency,
-                }));
-            }, 10000);
-
-            // Fire one immediately after 2s so user sees it quickly
+            // Boot sequence animation
+            setIsBooting(true);
             setTimeout(() => {
-                const event = detectionEvents[Math.floor(Math.random() * detectionEvents.length)];
-                addPopup(event);
-                setDetectionCount(prev => prev + 1);
-            }, 2000);
-        }
-    }, [isMonitoring, addPopup]);
+                setIsBooting(false);
+                setIsMonitoring(true);
+                setDetectionCount(0);
+                setScanProgress(0);
 
-    // Cleanup on unmount
+                engineRef.current = createAIEngine(handleNewAlert, {
+                    intervalMs: 8000,
+                    initialDelayMs: 2000,
+                });
+                engineRef.current.start();
+
+                scanRef.current = setInterval(() => {
+                    setScanProgress(prev => (prev >= 100 ? 0 : prev + 2));
+                    if (engineRef.current) setEngineStats(engineRef.current.getStats());
+                }, 200);
+            }, 2500);
+        }
+    }, [isMonitoring, handleNewAlert]);
+
+    // Cleanup
     useEffect(() => {
         return () => {
-            if (monitoringRef.current) clearInterval(monitoringRef.current);
+            if (engineRef.current) engineRef.current.stop();
             if (scanRef.current) clearInterval(scanRef.current);
         };
     }, []);
 
+    const unacknowledgedCount = alerts.filter(a => !a.acknowledged).length;
+    const topRiskPatients = allPatients.current
+        .map(p => ({ ...p, risk: riskScores[p.id] || { score: 0, label: 'LOW', trend: '→' } }))
+        .sort((a, b) => b.risk.score - a.risk.score);
+
     return (
         <Layout>
+            {/* CRITICAL flashing overlay */}
+            {criticalMode && (
+                <div className="critical-overlay">
+                    <div className="critical-banner">
+                        <span className="critical-icon">🚨</span>
+                        <div className="critical-text">
+                            <span className="critical-title">⚠️ CRITICAL EMERGENCY — MULTIPLE ALERTS DETECTED</span>
+                            <span className="critical-sub">{recentAlertTimestamps.current.length} alerts in last 30 seconds — Immediate attention required</span>
+                        </div>
+                        <button className="critical-dismiss" onClick={() => setCriticalMode(false)}>✕ Dismiss</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Boot/Loading Overlay */}
+            {isBooting && (
+                <div className="boot-overlay">
+                    <div className="boot-card">
+                        <div className="boot-spinner"></div>
+                        <h3 className="boot-title">Initializing AI Engine</h3>
+                        <div className="boot-steps">
+                            <div className="boot-step done">✅ Loading neural network models…</div>
+                            <div className="boot-step done delay-1">✅ Connecting Edge AI devices…</div>
+                            <div className="boot-step animating delay-2">⏳ Calibrating audio sensors…</div>
+                            <div className="boot-step pending delay-3">⬜ Starting vitals stream…</div>
+                        </div>
+                        <div className="boot-bar">
+                            <div className="boot-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Popup Notifications */}
             <div className="popup-container">
                 {popups.map((popup, i) => (
                     <div
                         key={popup.id}
                         className={`ai-popup ${popup.severity} ${popup.exiting ? 'exiting' : ''}`}
-                        style={{ bottom: `${24 + i * 110}px` }}
+                        style={{ bottom: `${24 + i * 130}px` }}
                     >
                         <div className="popup-glow"></div>
                         <button className="popup-close" onClick={() => removePopup(popup.id)}>✕</button>
-                        <div className="popup-icon">
-                            {popup.severity === 'high' ? '🚨' : '⚠️'}
-                        </div>
+                        <div className="popup-icon">{popup.icon}</div>
                         <div className="popup-content">
-                            <span className="popup-title">AI Detected Distress — Room {popup.room}</span>
+                            <span className="popup-title">AI Detected — Room {popup.room}</span>
                             <span className="popup-message">{popup.message}</span>
+                            <span className="popup-trigger">{popup.triggerDetail}</span>
                             <span className="popup-meta">
                                 <span className={`popup-severity ${popup.severity}`}>
-                                    {popup.severity === 'high' ? '🔴 HIGH PRIORITY' : '🟡 MEDIUM'}
+                                    {popup.severity === 'high' ? '🔴 HIGH' : '🟡 MEDIUM'}
                                 </span>
-                                <span className="popup-time">Just now</span>
+                                <span className="popup-conf">🎯 {popup.confidence}%</span>
+                                <span className="popup-time">
+                                    {new Date(popup.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </span>
                             </span>
                         </div>
                     </div>
@@ -200,22 +265,48 @@ function Dashboard() {
                         <span className="clock-dot"></span>
                         <span>{currentTime.toLocaleTimeString()}</span>
                     </div>
-                    <div className="status-online">System Online</div>
+                    <div className={`status-online ${criticalMode ? 'critical' : ''}`}>
+                        {criticalMode ? '🔴 CRITICAL' : 'System Online'}
+                    </div>
                 </div>
             </div>
 
+            {/* System Status Indicators */}
+            <div className="system-indicators fade-in">
+                {systemIndicators.map((ind) => (
+                    <div key={ind.label} className={`sys-indicator ${ind.active ? 'active' : 'inactive'}`}>
+                        <span className="sys-ind-icon">{ind.icon}</span>
+                        <div className="sys-ind-info">
+                            <span className="sys-ind-label">{ind.label}</span>
+                            <span className={`sys-ind-status ${ind.active ? 'online' : 'offline'}`}>
+                                <span className="sys-ind-dot"></span>
+                                {ind.status}
+                            </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
             {/* AI Monitoring Control Bar */}
-            <div className={`monitoring-bar fade-in ${isMonitoring ? 'active' : ''}`}>
+            <div className={`monitoring-bar fade-in ${isMonitoring ? 'active' : ''} ${criticalMode ? 'critical-bar' : ''}`}>
                 <div className="monitoring-left">
                     <div className={`monitoring-indicator ${isMonitoring ? 'active' : ''}`}>
                         <span className="indicator-dot"></span>
-                        <span>{isMonitoring ? 'AI Monitoring Active' : 'AI Monitoring Standby'}</span>
+                        <span>{isMonitoring ? 'AI Engine Active' : 'AI Engine Standby'}</span>
                     </div>
-                    {isMonitoring && (
+                    {isMonitoring && engineStats && (
                         <div className="monitoring-stats">
                             <span className="monitor-stat">
                                 <span className="stat-label">Detections:</span>
                                 <span className="stat-num">{detectionCount}</span>
+                            </span>
+                            <span className="monitor-stat">
+                                <span className="stat-label">Interval:</span>
+                                <span className="stat-num">{engineStats.intervalMs / 1000}s</span>
+                            </span>
+                            <span className="monitor-stat">
+                                <span className="stat-label">Uptime:</span>
+                                <span className="stat-num">{engineStats.uptime}s</span>
                             </span>
                             <span className="monitor-stat">
                                 <span className="stat-label">Scan:</span>
@@ -230,15 +321,16 @@ function Dashboard() {
                             <div className="scan-bar">
                                 <div className="scan-fill" style={{ width: `${scanProgress}%` }}></div>
                             </div>
-                            <span className="scan-label">Scanning audio & vitals…</span>
+                            <span className="scan-label">AI Engine scanning audio, vitals & motion…</span>
                         </div>
                     )}
                     <button
                         className={`monitoring-btn ${isMonitoring ? 'stop' : 'start'}`}
                         onClick={toggleMonitoring}
+                        disabled={isBooting}
                     >
                         <span className="btn-pulse"></span>
-                        <span>{isMonitoring ? '⏹ Stop Monitoring' : '▶ Start AI Monitoring'}</span>
+                        <span>{isBooting ? '⏳ Booting…' : isMonitoring ? '⏹ Stop AI Engine' : '▶ Start AI Engine'}</span>
                     </button>
                 </div>
             </div>
@@ -253,25 +345,22 @@ function Dashboard() {
                     </div>
                     <div className="stat-trend up">↑ 2 today</div>
                 </div>
-
-                <div className="stat-card orange fade-in fade-in-delay-2">
+                <div className={`stat-card orange fade-in fade-in-delay-2 ${criticalMode ? 'critical-pulse' : ''}`}>
                     <div className="stat-icon orange">⚠️</div>
                     <div className="stat-info">
                         <h3>{stats.active}</h3>
                         <p>Active Alerts</p>
                     </div>
-                    <div className="stat-trend warn">Live</div>
+                    <div className="stat-trend warn">{criticalMode ? '🔴 CRITICAL' : 'Live'}</div>
                 </div>
-
-                <div className="stat-card red fade-in fade-in-delay-3">
+                <div className={`stat-card red fade-in fade-in-delay-3 ${criticalMode ? 'critical-pulse' : ''}`}>
                     <div className="stat-icon red">🚨</div>
                     <div className="stat-info">
                         <h3>{stats.emergency}</h3>
                         <p>High Emergency</p>
                     </div>
-                    <div className="stat-trend danger">Critical</div>
+                    <div className="stat-trend danger">{criticalMode ? 'CATASTROPHIC' : 'Critical'}</div>
                 </div>
-
                 <div className="stat-card green fade-in fade-in-delay-4">
                     <div className="stat-icon green">💚</div>
                     <div className="stat-info">
@@ -292,43 +381,89 @@ function Dashboard() {
                             <span>Live AI Alerts</span>
                             <span className="live-dot"></span>
                         </div>
-                        <span className="alert-count">{alerts.length} alerts</span>
+                        <div className="panel-actions">
+                            <span className="alert-count">{unacknowledgedCount} unread / {alerts.length} total</span>
+                            {alerts.length > 0 && (
+                                <>
+                                    <button className="panel-btn ack-all-btn" onClick={acknowledgeAll}>✓ Ack All</button>
+                                    <button className="panel-btn clear-all-btn" onClick={clearAllAlerts}>🗑️ Clear All</button>
+                                </>
+                            )}
+                        </div>
                     </div>
 
                     <div className="alerts-list">
+                        {alerts.length === 0 && (
+                            <div className="no-alerts">
+                                <span className="no-alert-icon">✅</span>
+                                <p>No active alerts — all clear!</p>
+                                <p className="no-alert-hint">Start AI Engine to begin monitoring</p>
+                            </div>
+                        )}
                         {alerts.map((alert, index) => (
                             <div
-                                key={`${alert.room}-${alert.type}-${index}`}
-                                className={`alert-card ${alert.severity} ${index === 0 ? 'newest' : ''}`}
+                                key={alert.id}
+                                className={`alert-card ${alert.severityLevel} ${index === 0 ? 'newest' : ''} ${alert.acknowledged ? 'acknowledged' : ''}`}
                                 style={{ animationDelay: `${index * 0.08}s` }}
                             >
                                 <div className="alert-header">
                                     <div className="alert-room-info">
                                         <span className="alert-icon">{alert.icon}</span>
                                         <div>
-                                            <span className="alert-room">Room {alert.room}</span>
-                                            <span className="alert-patient">{alert.patient}</span>
+                                            <span className="alert-room">Room {alert.roomNumber}</span>
+                                            <span className="alert-patient">{alert.patientName} ({alert.patientId})</span>
                                         </div>
                                     </div>
-                                    <span className={`alert-badge ${alert.severity}`}>
-                                        {alert.severity === 'high' ? '🔴 HIGH' : alert.severity === 'medium' ? '🟡 MEDIUM' : '🟢 LOW'}
+                                    <span className={`alert-badge ${alert.severityLevel}`}>
+                                        {alert.severityLevel === 'high' ? '🔴 HIGH' : alert.severityLevel === 'medium' ? '🟡 MEDIUM' : '🟢 LOW'}
                                     </span>
                                 </div>
 
-                                <p className="alert-description">{alert.type}</p>
+                                <p className="alert-description">{alert.condition}</p>
+                                <p className="alert-trigger">{alert.triggerDetail}</p>
+
+                                <div className="alert-vitals">
+                                    <span>❤️ {alert.vitals.heartRate} BPM</span>
+                                    <span>🩸 SpO2 {alert.vitals.spO2}%</span>
+                                    <span>🌡️ {alert.vitals.temperature}°C</span>
+                                    <span>🫁 {alert.vitals.respiratoryRate}/min</span>
+                                </div>
+
+                                <div className="alert-timestamp-row">
+                                    <span className="alert-timestamp">🕐 {alert.formattedTime}</span>
+                                    <span className="alert-ago">{timeAgo(alert.timestamp)}</span>
+                                    {riskScores[alert.patientId] && (
+                                        <span className={`risk-mini-badge ${riskScores[alert.patientId].label.toLowerCase()}`}>
+                                            Risk: {riskScores[alert.patientId].score}%
+                                        </span>
+                                    )}
+                                    <span className="alert-id-badge">{alert.id}</span>
+                                </div>
 
                                 <div className="alert-footer">
                                     <div className="alert-confidence">
                                         <span>AI Confidence:</span>
                                         <div className="confidence-bar">
                                             <div
-                                                className={`confidence-fill ${alert.severity}`}
-                                                style={{ width: `${alert.confidence}%` }}
+                                                className={`confidence-fill ${alert.severityLevel}`}
+                                                style={{ width: `${alert.confidenceScore}%` }}
                                             ></div>
                                         </div>
-                                        <span className="confidence-value">{alert.confidence}%</span>
+                                        <span className="confidence-value">{alert.confidenceScore}%</span>
                                     </div>
-                                    <span className="alert-time">{getTimeAgo(index)}</span>
+                                </div>
+
+                                <div className="alert-actions">
+                                    {!alert.acknowledged ? (
+                                        <button className="alert-action-btn ack-btn" onClick={() => acknowledgeAlert(alert.id)}>
+                                            ✓ Acknowledge
+                                        </button>
+                                    ) : (
+                                        <span className="ack-badge">✅ Acknowledged</span>
+                                    )}
+                                    <button className="alert-action-btn dismiss-btn" onClick={() => dismissAlert(alert.id)}>
+                                        ✕ Dismiss
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -337,6 +472,38 @@ function Dashboard() {
 
                 {/* Right Side Panel */}
                 <div className="side-panel">
+                    {/* Predictive Risk Scores */}
+                    <div className="card risk-card fade-in fade-in-delay-1">
+                        <div className="section-title">
+                            <span className="icon">🎯</span>
+                            <span>Predictive Risk Scores</span>
+                        </div>
+                        <div className="risk-list">
+                            {topRiskPatients.slice(0, 6).map(p => (
+                                <div key={p.id} className={`risk-item ${p.risk.label.toLowerCase()}`}>
+                                    <div className="risk-patient-info">
+                                        <span className="risk-name">{p.name}</span>
+                                        <span className="risk-room">Room {p.room}</span>
+                                    </div>
+                                    <div className="risk-score-area">
+                                        <div className="risk-bar-bg">
+                                            <div
+                                                className={`risk-bar-fill ${p.risk.label.toLowerCase()}`}
+                                                style={{ width: `${p.risk.score}%` }}
+                                            ></div>
+                                        </div>
+                                        <span className={`risk-percentage ${p.risk.label.toLowerCase()}`}>
+                                            {p.risk.score}%
+                                        </span>
+                                        <span className={`risk-label-badge ${p.risk.label.toLowerCase()}`}>
+                                            {p.risk.trend} {p.risk.label}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* AI System Status */}
                     <div className="card system-card fade-in fade-in-delay-2">
                         <div className="section-title">
@@ -344,34 +511,20 @@ function Dashboard() {
                             <span>AI Engine Status</span>
                         </div>
                         <div className="ai-metrics">
-                            <div className="ai-metric">
-                                <span className="metric-label">Model Accuracy</span>
-                                <div className="metric-bar-container">
-                                    <div className="metric-bar" style={{ width: '96%' }}></div>
+                            {[
+                                { label: 'Model Accuracy', value: '96.2%', width: '96%' },
+                                { label: 'Audio Analysis', value: '89.1%', width: '89%' },
+                                { label: 'Motion Detection', value: '94.5%', width: '94%' },
+                                { label: 'Vitals Processing', value: '98.0%', width: '98%' },
+                            ].map(m => (
+                                <div key={m.label} className="ai-metric">
+                                    <span className="metric-label">{m.label}</span>
+                                    <div className="metric-bar-container">
+                                        <div className="metric-bar" style={{ width: m.width }}></div>
+                                    </div>
+                                    <span className="metric-value">{m.value}</span>
                                 </div>
-                                <span className="metric-value">96.2%</span>
-                            </div>
-                            <div className="ai-metric">
-                                <span className="metric-label">Audio Analysis</span>
-                                <div className="metric-bar-container">
-                                    <div className="metric-bar" style={{ width: '89%' }}></div>
-                                </div>
-                                <span className="metric-value">89.1%</span>
-                            </div>
-                            <div className="ai-metric">
-                                <span className="metric-label">Motion Detection</span>
-                                <div className="metric-bar-container">
-                                    <div className="metric-bar" style={{ width: '94%' }}></div>
-                                </div>
-                                <span className="metric-value">94.5%</span>
-                            </div>
-                            <div className="ai-metric">
-                                <span className="metric-label">Vitals Processing</span>
-                                <div className="metric-bar-container">
-                                    <div className="metric-bar" style={{ width: '98%' }}></div>
-                                </div>
-                                <span className="metric-value">98.0%</span>
-                            </div>
+                            ))}
                         </div>
                         <div className="ai-uptime">
                             <span>⏱️ Uptime: 99.97%</span>
@@ -379,7 +532,7 @@ function Dashboard() {
                         </div>
                     </div>
 
-                    {/* Quick Ward Overview */}
+                    {/* Ward Overview */}
                     <div className="card ward-card fade-in fade-in-delay-3">
                         <div className="section-title">
                             <span className="icon">🏢</span>
@@ -399,31 +552,6 @@ function Dashboard() {
                                     </div>
                                     <div className={`ward-status ${ward.status}`}>
                                         {ward.alerts > 0 ? `${ward.alerts} alert${ward.alerts > 1 ? 's' : ''}` : 'Clear'}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Recent Activity */}
-                    <div className="card activity-card fade-in fade-in-delay-4">
-                        <div className="section-title">
-                            <span className="icon">📋</span>
-                            <span>Recent Activity</span>
-                        </div>
-                        <div className="activity-list">
-                            {[
-                                { text: 'Nurse dispatched to Room 203', time: '2 min ago', type: 'action' },
-                                { text: 'AI alert resolved — Room 118', time: '8 min ago', type: 'resolved' },
-                                { text: 'New patient admitted — Room 220', time: '15 min ago', type: 'info' },
-                                { text: 'Shift change — Ward B', time: '32 min ago', type: 'info' },
-                                { text: 'Emergency protocol activated — ICU', time: '45 min ago', type: 'action' },
-                            ].map((activity, i) => (
-                                <div key={i} className="activity-item">
-                                    <div className={`activity-dot ${activity.type}`}></div>
-                                    <div className="activity-content">
-                                        <span className="activity-text">{activity.text}</span>
-                                        <span className="activity-time">{activity.time}</span>
                                     </div>
                                 </div>
                             ))}

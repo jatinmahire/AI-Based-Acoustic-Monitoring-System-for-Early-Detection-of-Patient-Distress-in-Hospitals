@@ -1,0 +1,365 @@
+/* ===== SETTINGS HEADER ===== */
+.settings-header {
+    margin-bottom: 24px;
+}
+
+/* ===== TABS ===== */
+.settings-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 28px;
+    background: var(--bg-card);
+    padding: 6px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.settings-tab {
+    flex: 1;
+    padding: 12px 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.settings-tab:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.settings-tab.active {
+    background: rgba(0, 212, 170, 0.1);
+    color: var(--accent-teal);
+    border-color: rgba(0, 212, 170, 0.2);
+    box-shadow: 0 0 12px rgba(0, 212, 170, 0.08);
+}
+
+/* ===== CONTENT ===== */
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Intro Card */
+.arch-intro-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+}
+
+.arch-intro-card h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3rem;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.arch-intro-card p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.arch-intro-card strong {
+    color: var(--accent-teal);
+}
+
+/* ===== ARCHITECTURE DIAGRAM ===== */
+.arch-diagram-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+}
+
+.arch-diagram-card h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+}
+
+.arch-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Tier */
+.arch-tier {
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--border-color);
+}
+
+.tier-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tier-nodes {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.arch-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 16px 10px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.arch-node:hover {
+    transform: translateY(-3px);
+}
+
+.arch-node.edge {
+    background: rgba(0, 212, 170, 0.06);
+    border: 1px solid rgba(0, 212, 170, 0.15);
+}
+
+.arch-node.edge:hover {
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.1);
+}
+
+.arch-node.server {
+    background: rgba(108, 92, 231, 0.06);
+    border: 1px solid rgba(108, 92, 231, 0.15);
+}
+
+.arch-node.server:hover {
+    box-shadow: 0 0 20px rgba(108, 92, 231, 0.1);
+}
+
+.arch-node.dashboard {
+    background: rgba(0, 168, 255, 0.06);
+    border: 1px solid rgba(0, 168, 255, 0.15);
+}
+
+.arch-node.dashboard:hover {
+    box-shadow: 0 0 20px rgba(0, 168, 255, 0.1);
+}
+
+.node-icon {
+    font-size: 1.8rem;
+}
+
+.node-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.node-desc {
+    font-size: 0.66rem;
+    color: var(--text-muted);
+}
+
+/* Arrow */
+.arch-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 14px 0;
+}
+
+.arrow-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-teal), transparent);
+    position: relative;
+}
+
+.arrow-label {
+    font-size: 0.7rem;
+    font-family: 'Orbitron', sans-serif;
+    color: var(--accent-teal);
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+
+/* ===== DETAILS GRID ===== */
+.arch-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.detail-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 22px 26px;
+    transition: all 0.3s ease;
+}
+
+.detail-card:hover {
+    border-color: rgba(0, 212, 170, 0.2);
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.05);
+}
+
+.detail-card h4 {
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+    font-weight: 700;
+}
+
+.detail-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.detail-card li {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    padding: 5px 0 5px 18px;
+    position: relative;
+    line-height: 1.5;
+}
+
+.detail-card li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent-teal);
+    font-weight: bold;
+}
+
+/* ===== TECH STACK ===== */
+.tech-stack-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+}
+
+.tech-stack-card h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+.tech-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.tech-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.015);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.tech-layer {
+    font-size: 0.7rem;
+    font-family: 'Orbitron', sans-serif;
+    color: var(--accent-teal);
+    letter-spacing: 0.5px;
+}
+
+.tech-value {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+/* ===== CONFIG TABLE ===== */
+.config-table-wrap {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    overflow-x: auto;
+}
+
+.config-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.config-table th {
+    text-align: left;
+    font-size: 0.72rem;
+    font-family: 'Orbitron', sans-serif;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.config-table td {
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.config-param {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.72rem !important;
+    color: var(--accent-teal) !important;
+    letter-spacing: 0.5px;
+}
+
+.config-value {
+    font-weight: 700;
+    color: var(--text-primary) !important;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+    .tier-nodes {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .arch-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tech-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .settings-tabs {
+        flex-direction: column;
+    }
+
+    .tier-nodes {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,650 @@
+/* ===== COMFORT LAYOUT ===== */
+.comfort-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr 1fr;
+    gap: 24px;
+}
+
+.comfort-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: -12px;
+    margin-bottom: 20px;
+}
+
+/* ===== PATIENT ALERT LIST ===== */
+.patient-alert-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.patient-alert-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.patient-alert-card:hover {
+    border-color: var(--border-glow);
+    background: var(--bg-card-hover);
+    transform: translateX(4px);
+}
+
+.patient-alert-card.selected {
+    border-color: var(--accent-teal);
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.1);
+    background: rgba(0, 212, 170, 0.04);
+}
+
+.pa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.pa-room {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.pa-severity {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pa-severity.high {
+    background: var(--alert-red-bg);
+    color: var(--alert-red);
+}
+
+.pa-severity.medium {
+    background: var(--alert-orange-bg);
+    color: var(--alert-orange);
+}
+
+.pa-patient {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.pa-type {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.pa-stress-mini {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+}
+
+.pa-stress-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.pa-stress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+.pa-activate-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 212, 170, 0.08);
+    color: var(--accent-teal);
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 212, 170, 0.15);
+}
+
+.pa-activate-btn:hover {
+    background: rgba(0, 212, 170, 0.15);
+    box-shadow: 0 0 15px rgba(0, 212, 170, 0.1);
+}
+
+/* ===== CENTER — BREATHING & MESSAGES ===== */
+.comfort-center {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+}
+
+/* Comfort Message Card */
+.comfort-message-card {
+    width: 100%;
+    text-align: center;
+    padding: 28px 24px;
+    background: rgba(0, 212, 170, 0.04);
+    border: 1px solid rgba(0, 212, 170, 0.15);
+    border-radius: var(--radius-lg);
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.comfort-msg-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+}
+
+.comfort-msg-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    color: var(--accent-teal);
+    margin-bottom: 8px;
+}
+
+.comfort-msg-text {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 360px;
+    margin: 0 auto;
+}
+
+.comfort-msg-meta {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 14px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ===== BREATHING CIRCLE ===== */
+.breathing-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.breathing-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.breathing-container {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.breathing-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 212, 170, 0.1);
+    transition: all 1s ease;
+}
+
+.breathing-ring.ring-1 {
+    width: 100%;
+    height: 100%;
+    inset: 0;
+}
+
+.breathing-ring.ring-2 {
+    width: 85%;
+    height: 85%;
+    top: 7.5%;
+    left: 7.5%;
+}
+
+.breathing-ring.ring-3 {
+    width: 70%;
+    height: 70%;
+    top: 15%;
+    left: 15%;
+}
+
+/* Breathing phases */
+.breathing-container.inhale .breathing-ring {
+    border-color: rgba(0, 212, 170, 0.3);
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.1);
+}
+
+.breathing-container.inhale .ring-1 {
+    animation: ringExpand1 4s ease-in-out forwards;
+}
+
+.breathing-container.inhale .ring-2 {
+    animation: ringExpand2 4s ease-in-out 0.2s forwards;
+}
+
+.breathing-container.inhale .ring-3 {
+    animation: ringExpand3 4s ease-in-out 0.4s forwards;
+}
+
+.breathing-container.exhale .breathing-ring {
+    border-color: rgba(0, 168, 255, 0.2);
+}
+
+.breathing-container.exhale .ring-1 {
+    animation: ringShrink1 4s ease-in-out forwards;
+}
+
+.breathing-container.exhale .ring-2 {
+    animation: ringShrink2 4s ease-in-out 0.2s forwards;
+}
+
+.breathing-container.exhale .ring-3 {
+    animation: ringShrink3 4s ease-in-out 0.4s forwards;
+}
+
+.breathing-container.hold .breathing-ring {
+    border-color: rgba(168, 85, 247, 0.2);
+}
+
+@keyframes ringExpand1 {
+    from {
+        transform: scale(0.85);
+    }
+
+    to {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes ringExpand2 {
+    from {
+        transform: scale(0.9);
+    }
+
+    to {
+        transform: scale(1.08);
+    }
+}
+
+@keyframes ringExpand3 {
+    from {
+        transform: scale(0.95);
+    }
+
+    to {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes ringShrink1 {
+    from {
+        transform: scale(1.05);
+    }
+
+    to {
+        transform: scale(0.85);
+    }
+}
+
+@keyframes ringShrink2 {
+    from {
+        transform: scale(1.08);
+    }
+
+    to {
+        transform: scale(0.9);
+    }
+}
+
+@keyframes ringShrink3 {
+    from {
+        transform: scale(1.1);
+    }
+
+    to {
+        transform: scale(0.95);
+    }
+}
+
+.breathing-circle {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: rgba(0, 212, 170, 0.06);
+    border: 2px solid rgba(0, 212, 170, 0.15);
+    transition: all 0.8s ease;
+    z-index: 1;
+}
+
+.breathing-circle.inhale {
+    transform: scale(1.2);
+    background: rgba(0, 212, 170, 0.12);
+    border-color: var(--accent-teal);
+    box-shadow: 0 0 40px rgba(0, 212, 170, 0.2), 0 0 80px rgba(0, 212, 170, 0.1);
+}
+
+.breathing-circle.exhale {
+    transform: scale(0.85);
+    background: rgba(0, 168, 255, 0.08);
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 30px rgba(0, 168, 255, 0.15);
+}
+
+.breathing-circle.hold {
+    background: rgba(168, 85, 247, 0.08);
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
+}
+
+.breath-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.breath-count {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+}
+
+/* ===== VOICE BUTTON ===== */
+.voice-section {
+    text-align: center;
+}
+
+.voice-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 28px;
+    border-radius: var(--radius-xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.voice-btn:hover {
+    border-color: var(--accent-teal);
+    box-shadow: var(--shadow-glow-teal);
+}
+
+.voice-btn.playing {
+    background: rgba(0, 212, 170, 0.06);
+    border-color: var(--accent-teal);
+}
+
+.voice-waves {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 20px;
+}
+
+.wave {
+    display: block;
+    width: 3px;
+    height: 8px;
+    background: var(--accent-teal);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.voice-btn.playing .wave {
+    animation: waveAnim 1s ease-in-out infinite;
+}
+
+.wave.w1 {
+    animation-delay: 0s;
+}
+
+.wave.w2 {
+    animation-delay: 0.15s;
+}
+
+.wave.w3 {
+    animation-delay: 0.3s;
+}
+
+.wave.w4 {
+    animation-delay: 0.45s;
+}
+
+.wave.w5 {
+    animation-delay: 0.6s;
+}
+
+@keyframes waveAnim {
+
+    0%,
+    100% {
+        height: 6px;
+    }
+
+    50% {
+        height: 20px;
+    }
+}
+
+.voice-status {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 10px;
+    animation: fadeInUp 0.3s ease;
+}
+
+/* ===== RIGHT — STRESS METER ===== */
+.comfort-right {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.stress-card {
+    padding: 22px;
+    text-align: center;
+}
+
+/* Gauge */
+.stress-gauge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 20px;
+}
+
+.gauge-circle {
+    position: relative;
+    width: 130px;
+    height: 130px;
+}
+
+.gauge-svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.gauge-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 8;
+}
+
+.gauge-fill {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease, stroke 0.5s ease;
+}
+
+.gauge-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.gauge-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    transition: color 0.5s ease;
+}
+
+.gauge-percent {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.gauge-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 8px;
+    transition: color 0.5s ease;
+}
+
+/* Stress History */
+.stress-history {
+    margin-top: 4px;
+}
+
+.history-label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-align: left;
+}
+
+.history-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 50px;
+}
+
+.history-bar-wrapper {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+}
+
+.history-bar {
+    width: 100%;
+    border-radius: 2px 2px 0 0;
+    transition: height 0.5s ease, background 0.5s ease;
+    min-height: 2px;
+}
+
+.history-trend-label {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--alert-green);
+    margin-top: 8px;
+    text-align: center;
+    animation: fadeInUp 0.3s ease;
+}
+
+/* Actions Card */
+.actions-card {
+    padding: 22px;
+}
+
+.action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.action-item:hover {
+    border-color: var(--border-glow);
+}
+
+.action-icon {
+    font-size: 1rem;
+}
+
+.action-label {
+    flex: 1;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.action-status {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.action-status.active {
+    color: var(--accent-teal);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+    .comfort-layout {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .comfort-right {
+        grid-column: span 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .comfort-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .comfort-right {
+        grid-column: span 1;
+        grid-template-columns: 1fr;
+    }
+}

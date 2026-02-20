@@ -428,8 +428,7 @@ npm run dev
 <table>
   <tr>
     <td align="center">
-      <b>Jatin Mahire</b><br>
-      >
+      <b>Jatin Mahire</b><br>>
       <a</a>
     </td>
     <td align="center">
@@ -457,11 +456,6 @@ npm run dev
 
 ---
 
-## 📄 License
-
-This project is licensed under the **MIT License** — free to use and modify.
-
----
 
 <p align="center">
   <b>🏥 AI NurseGuard — Because every second counts in patient care.</b>

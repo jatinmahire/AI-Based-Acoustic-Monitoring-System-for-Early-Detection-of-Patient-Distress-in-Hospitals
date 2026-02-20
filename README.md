@@ -428,7 +428,7 @@ npm run dev
 <table>
   <tr>
     <td align="center">
-      <b>Jatin Mahire</b><br>>
+      <b>Jatin Mahire</b><br>
       <a</a>
     </td>
     <td align="center">

@@ -206,13 +206,6 @@ The AI detection engine generates **realistic but simulated** alerts to demonstr
 
 ## 📸 Complete Prototype Screenshots
 
-### 🔴 CRITICAL Emergency Mode — Full Dashboard
-> Dashboard in CRITICAL EMERGENCY mode — real-time AI alerts, system indicators, predictive risk scores, and popup notifications
-
-![CRITICAL Emergency Dashboard](screenshots/hero-dashboard.png)
-
----
-
 ### 🔐 Login Page
 > Secure staff authentication with HIPAA-compliant design
 
@@ -259,6 +252,13 @@ The AI detection engine generates **realistic but simulated** alerts to demonstr
 > Stress timelines, emergency counts, alert distribution, and response benchmarks
 
 ![Analytics](screenshots/analytics.png)
+
+---
+
+### 🔴 CRITICAL Emergency Mode — Full Dashboard
+> Dashboard in CRITICAL EMERGENCY mode — real-time AI alerts, system indicators, predictive risk scores, and popup notifications
+
+![CRITICAL Emergency Dashboard](screenshots/hero-dashboard.png)
 
 ---
 

@@ -16,6 +16,14 @@
   <i>A next-generation hospital safety system that listens, analyzes, predicts, and responds — 24/7.</i>
 </p>
 
+<p align="center">
+  <img src="screenshots/hero-dashboard.png" alt="AI NurseGuard — Dashboard with CRITICAL Emergency Mode" width="100%" />
+</p>
+
+<p align="center">
+  <i>⬆️ Dashboard in CRITICAL EMERGENCY mode — real-time AI alerts, system indicators, predictive risk scores, and popup notifications</i>
+</p>
+
 ---
 
 ## 🚀 Project Overview
